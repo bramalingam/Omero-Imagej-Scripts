@@ -136,9 +136,11 @@ datasetId = "399"
 imageId = "1"
 groupId = "-1"
 #paths = ArrayList()
-paths= "/Users/bramalingam/Desktop/Screen Shot 2016-06-22 at 09.48.57.png"
-str2d = java.lang.reflect.Array.newInstance(java.lang.String,[1])
-str2d [0] = paths
+paths= "/Users/bramalingam/Desktop/"
+
+operation = "background_sub"
+
+macroFilePath = "/Users/bramalingam/Desktop/bg_subtract.ijm"
 
 # Prototype analysis example
 gateway = omeroConnect()
@@ -148,10 +150,24 @@ for imageId in imageIds:
 #	imageId = imageIds[2]
 	print imageId
 	openImagePlus(HOST,USERNAME,PASSWORD,groupId,imageId)
-	IJ.run("Enhance Contrast", "saturated=0.35");
+	IJ.run("Enhance Contrast", "saturated=0.35")
 	#Plug Your analysis here#
+	IJ.runMacroFile(macroFilePath)
+	
+#	Save resultant image using Bio-Formats
+	imp = IJ.getImage();
+	path = paths + imp.getTitle() + ".ome.tiff";
+	print(path)
+	options = "save=" + path + " export compression=Uncompressed"
+	IJ.run(imp, "Bio-Formats Exporter", options);
+	imp.changes = False
+	imp.close()
 
-#success = uploadImage(str2d, gateway)
+#	Upload image to OMERO
+	str2d = java.lang.reflect.Array.newInstance(java.lang.String,[1])
+	str2d [0] = path
+	success = uploadImage(str2d, gateway)
+	
 gateway.disconnect()	
 
 	
