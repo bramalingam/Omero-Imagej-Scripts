@@ -119,7 +119,7 @@ def uploadImage(path, gateway):
 # Setup
 # =====
 
-# Drop omero_client.jar and Blitz.jar under the jars folder of FIJI
+# Drop omero_client.jar under the jars folder of Fiji and OMEROIJ Plugin under the plugins folder of Fiji
 
 # Parameters
 # ==========
