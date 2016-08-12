@@ -59,8 +59,8 @@ def omeroConnect():
     cred = LoginCredentials()
         cred.getServer().setHostname(HOST)
         cred.getServer().setPort(PORT)
-        cred.getUser().setUsername(USERNAME)
-        cred.getUser().setPassword(PASSWORD)
+        cred.getUser().setUsername(USERNAME.strip())
+        cred.getUser().setPassword(PASSWORD.strip())
         simpleLogger = SimpleLogger()
         gateway = Gateway(simpleLogger)
         gateway.connect(cred)
@@ -119,7 +119,7 @@ def uploadImage(path, gateway):
 # Setup
 # =====
 
-# Drop omero_client.jar under the jars folder of Fiji and OMEROIJ Plugin under the plugins folder of Fiji
+# Drop omero_client.jar and Blitz.jar under the jars folder of FIJI
 
 # Parameters
 # ==========
@@ -127,25 +127,36 @@ def uploadImage(path, gateway):
 # open Omero Image
 # ================
 
-HOST = "frog.openmicroscopy.org"
-USERNAME = "ome-trainer-1"
-PASSWORD = "ome"
+#OMERO Server details
+HOST = "omero-latest-analysis.docker.openmicroscopy.org"
 PORT = 4064
-
-datasetId = "399"
-imageId = "1"
+datasetId = "1"
 groupId = "-1"
+
+#Credentials stored in a text file
+#Format : username = USERNAME
+#Format : password = PASSWORD
+CREDENTIALS = "/Users/bramalingam/Desktop/FijiDemonstration/credentials.txt"
+
+# File path to the ImageJ/FIJI macro
+macroFilePath = "/Users/bramalingam/Desktop/FijiDemonstration/bg_subtract.ijm"
+operation = "_bg_subtract"
+# Bio-Formats exports the processed images to the following path
+paths= "/Users/bramalingam/Desktop/FijiDemonstration/"
+
+#for demo alone
+myvars = {}
+myfile = open(CREDENTIALS)
+for line in myfile:
+    name, var = line.partition("=")[::2]
+    myvars[name.strip()] = var.strip()
+USERNAME = myvars['username']
+PASSWORD = myvars['password']
 
 # Prototype analysis example
 gateway = omeroConnect()
 imageIds = getImageIds(gateway,datasetId);
 imageIds.sort()
-
-# File path to the ImageJ/FIJI macro
-macroFilePath = "/Users/bramalingam/Desktop/bg_subtract.ijm"
-
-# Bio-Formats exports the processed images to the following path
-paths= "/Users/bramalingam/Desktop/"
 
 for imageId in imageIds:
     #	imageId = imageIds[2]
@@ -153,11 +164,12 @@ for imageId in imageIds:
         openImagePlus(HOST,USERNAME,PASSWORD,groupId,imageId)
         IJ.run("Enhance Contrast", "saturated=0.35");
         #Plug Your analysis here#
+        
         IJ.runMacroFile(macroFilePath)
         
         #	Save resultant image using Bio-Formats
         imp = IJ.getImage();
-        path = paths + imp.getTitle() + ".ome.tiff";
+        path = paths + imp.getTitle() + operation + ".ome.tiff";
         print(path)
         options = "save=" + path + " export compression=Uncompressed"
         IJ.run(imp, "Bio-Formats Exporter", options);
@@ -169,6 +181,7 @@ for imageId in imageIds:
         str2d [0] = path
         success = uploadImage(str2d, gateway)
 
+print("Done")
 #success = uploadImage(str2d, gateway)
 gateway.disconnect()	
 
