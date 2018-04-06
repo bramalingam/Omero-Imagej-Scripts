@@ -171,7 +171,7 @@ for imageId in imageIds:
         imp = IJ.getImage();
         path = paths + imp.getTitle() + operation + ".ome.tiff";
         print(path)
-        options = "save=" + path + " export compression=Uncompressed"
+        options = "save=[" + path + "] export compression=Uncompressed"
         IJ.run(imp, "Bio-Formats Exporter", options);
         imp.changes = False
         imp.close()
